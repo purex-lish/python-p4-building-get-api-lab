@@ -2,6 +2,7 @@
 
 from flask import Flask, make_response, jsonify
 from flask_migrate import Migrate
+from sqlalchemy import desc
 
 from models import db, Bakery, BakedGood
 
@@ -20,19 +21,58 @@ def index():
 
 @app.route('/bakeries')
 def bakeries():
-    return ''
+    bakeries = []
+
+    for bakery in Bakery.query.all():
+        bakery_dict = bakery.to_dict()
+        bakeries.append(bakery_dict)
+
+    response = make_response(
+            bakeries,
+            200,
+            {"content-type": "application/json"}
+        )
+
+    return response
 
 @app.route('/bakeries/<int:id>')
 def bakery_by_id(id):
-    return ''
+    #query the bakery ny ID
+    bakery = Bakery.query.filter(Bakery.id == id).first()
+    bakery_dict = bakery.to_dict()
+
+    response = make_response(
+        jsonify(bakery_dict),
+        200,
+
+    )
+    return response
 
 @app.route('/baked_goods/by_price')
 def baked_goods_by_price():
-    return ''
+    
+    baked_goods = BakedGood.query.order_by(desc(BakedGood.price)).all()
+    baked_goods_by_price = [baked_good.to_dict() for baked_good in baked_goods]
+
+    response = make_response(
+        jsonify(baked_goods_by_price),
+        200
+    )
+    return response
 
 @app.route('/baked_goods/most_expensive')
 def most_expensive_baked_good():
-    return ''
+    baked_goods = BakedGood.query.order_by(desc(BakedGood.price)).first()
+    baked_goods_by_most_expensive = baked_goods.to_dict() 
+    
+
+    response = make_response(
+        jsonify(baked_goods_by_most_expensive),
+        200
+    )
+
+
+    return response
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
